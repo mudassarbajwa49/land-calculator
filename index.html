@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pakistan Land Record Multi-Function Calculator</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #64748b;
+    --border: #dbe3ec;
+    --accent: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --ok: #15803d;
+    --warn: #b45309;
+    --bad: #b91c1c;
+  }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .container {
+    max-width: 1280px;
+    margin: 24px auto 50px;
+    padding: 0 16px;
+  }
+  .topbar {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  h1,h2,h3,p { margin-top:0; }
+  h1 { margin-bottom:6px; font-size:28px; }
+  h2 { font-size:20px; margin-bottom:6px; }
+  h3 { font-size:16px; margin-bottom:8px; }
+  .muted { color: var(--muted); font-size:14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(15,23,42,.035);
+  }
+  .grid-4 {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+  }
+  .grid-3 {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+  }
+  .grid-2 {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+  label {
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    color:#334155;
+  }
+  input, select {
+    width:100%;
+    margin-top:6px;
+    min-height:42px;
+    padding:10px 11px;
+    border:1px solid #cbd5e1;
+    border-radius:9px;
+    background:#fff;
+    color:var(--text);
+    font-size:15px;
+    outline:none;
+  }
+  input:focus, select:focus {
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(29,78,216,.12);
+  }
+  input[readonly] {
+    background:#f8fafc;
+    color:#475569;
+  }
+  .toolbar {
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  button {
+    border:none;
+    border-radius:9px;
+    min-height:42px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:700;
+  }
+  .primary { background:var(--accent); color:#fff; }
+  .secondary { background:#fff; color:#334155; border:1px solid #cbd5e1; }
+  .danger { background:#fff; color:var(--bad); border:1px solid #fecaca; }
+  .success { background:#166534; color:#fff; }
+  .soft {
+    background:var(--accent-soft);
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+  }
+
+  .summary-grid {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+    margin-top:14px;
+  }
+  .summary-box {
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    background:#fff;
+  }
+  .summary-box .value {
+    font-size:21px;
+    font-weight:800;
+    margin-top:5px;
+    word-break:break-word;
+  }
+  .status-ok { color:var(--ok); }
+  .status-warn { color:var(--warn); }
+  .status-bad { color:var(--bad); }
+
+  .party-table-wrap { overflow-x:auto; }
+  table {
+    width:100%;
+    border-collapse:collapse;
+    min-width:1060px;
+  }
+  th, td {
+    border-bottom:1px solid #e5e7eb;
+    padding:10px 7px;
+    text-align:left;
+    vertical-align:middle;
+  }
+  th {
+    font-size:12px;
+    color:#475569;
+    background:#f8fafc;
+    position:sticky;
+    top:0;
+  }
+  td input, td select {
+    margin-top:0;
+    min-height:38px;
+    padding:8px;
+  }
+  .mini { min-width:80px; }
+  .name-col { min-width:150px; }
+  .mode-col { min-width:120px; }
+  .percent-col { min-width:110px; }
+  .result-col { min-width:160px; }
+  .actions-col { min-width:90px; }
+  .party-percent {
+    font-weight:800;
+    white-space:nowrap;
+  }
+  .area-result {
+    font-size:13px;
+    color:#475569;
+    line-height:1.35;
+  }
+  .row-over { background:#fff7ed; }
+
+  .tool-card {
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    background:#fff;
+  }
+  .tool-result {
+    margin-top:12px;
+    border-radius:9px;
+    padding:11px;
+    background:#f8fafc;
+    font-size:14px;
+    min-height:44px;
+  }
+  .note {
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:9px;
+    background:#f8fafc;
+    color:#475569;
+    font-size:13px;
+  }
+  .settings {
+    display:flex;
+    gap:12px;
+    align-items:end;
+    flex-wrap:wrap;
+  }
+  .settings label { min-width:150px; max-width:190px; }
+
+  .footer-actions {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  @media (max-width:900px) {
+    .grid-4, .summary-grid { grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:640px) {
+    .grid-4,.grid-3,.grid-2,.summary-grid { grid-template-columns:1fr; }
+    .container { padding:0 10px; }
+    h1 { font-size:23px; }
+    .topbar { align-items:stretch; }
+  }
+
+  @media print {
+    body { background:#fff; }
+    .no-print, button, .settings-card, .quick-tools { display:none !important; }
+    .card { box-shadow:none; break-inside:avoid; }
+    .container { max-width:none; margin:0; padding:0; }
+    table { min-width:0; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div>
+      <h1>Pakistan Land Record Multi-Function Calculator</h1>
+      <p class="muted">One flexible screen for total land, party shares, percentages, conversions, remaining land and quick calculations.</p>
+    </div>
+    <div class="toolbar no-print">
+      <button class="secondary" id="saveBtn" type="button">Save</button>
+      <button class="secondary" id="loadBtn" type="button">Load Saved</button>
+      <button class="secondary" id="printBtn" type="button">Print</button>
+      <button class="danger" id="clearBtn" type="button">Clear All</button>
+    </div>
+  </div>
+
+  <div class="card settings-card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2>Land Unit Settings</h2>
+        <div class="muted">Default values are set to your system. You can change them if needed for another record.</div>
+      </div>
+      <button id="resetUnits" type="button" class="secondary">Reset Defaults</button>
+    </div>
+    <div class="settings" style="margin-top:12px">
+      <label>Marla per Kanal
+        <input id="marlaPerKanal" type="number" min="1" step="1" value="20">
+      </label>
+      <label>Sq ft per Marla
+        <input id="sqftPerMarla" type="number" min="1" step="0.01" value="272">
+      </label>
+      <div class="note" id="unitSummary" style="margin-top:0;flex:1">
+        1 Kanal = 20 Marla = 5,440 sq ft
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Total Land</h2>
+    <p class="muted">Enter the total land directly. You may use Kanal, Marla and Sq ft together. Changes update everything instantly.</p>
+
+    <div class="grid-4">
+      <label>Kanal
+        <input id="totalKanal" type="number" min="0" step="0.0001" value="0">
+      </label>
+      <label>Marla
+        <input id="totalMarla" type="number" min="0" step="0.0001" value="0">
+      </label>
+      <label>Sq ft
+        <input id="totalSqft" type="number" min="0" step="0.01" value="0">
+      </label>
+      <label>Project / Khewat / Note
+        <input id="recordName" type="text" placeholder="Optional name">
+      </label>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="muted">Normalized Total Area</div>
+        <div class="value" id="totalAreaText">0 Kanal · 0 Marla · 0 sq ft</div>
+      </div>
+      <div class="summary-box">
+        <div class="muted">Total Marla</div>
+        <div class="value" id="totalMarlaAll">0</div>
+      </div>
+      <div class="summary-box">
+        <div class="muted">Total Sq ft</div>
+        <div class="value" id="totalSqftAll">0</div>
+      </div>
+      <div class="summary-box">
+        <div class="muted">Total Percentage</div>
+        <div class="value">100%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2>Party Distribution</h2>
+        <p class="muted">Enter either the party <b>Area</b> or <b>Percentage</b>. Both remain editable; whichever one you change last becomes the calculation source.</p>
+      </div>
+      <div class="toolbar no-print">
+        <button id="addParty" type="button" class="primary">+ Add Party</button>
+        <button id="splitRemaining" type="button" class="soft">Split Remaining Equally</button>
+      </div>
+    </div>
+
+    <div style="margin:12px 0">
+      <label>Party Section Title
+        <input id="partySectionTitle" type="text" placeholder="e.g. Heirs Distribution, Owners Share, Family Settlement">
+      </label>
+    </div>
+
+    <div class="note" style="margin-bottom:12px">
+      <b>Flexible entry:</b> type Kanal/Marla/Sq ft and the percentage updates automatically. Or type a percentage manually and the land area updates automatically. The last side you edit becomes the calculation source.
+    </div>
+
+    <div class="party-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="name-col">Party Name</th>
+            <th class="mode-col">Calculation Source</th>
+            <th class="mini">Kanal</th>
+            <th class="mini">Marla</th>
+            <th class="mini">Sq ft</th>
+            <th class="percent-col">Percent</th>
+            <th class="result-col">Calculated Share</th>
+            <th class="actions-col no-print">Action</th>
+          </tr>
+        </thead>
+        <tbody id="partyBody"></tbody>
+      </table>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="muted">Allocated Percentage</div>
+        <div class="value" id="allocatedPercent">0%</div>
+      </div>
+      <div class="summary-box">
+        <div class="muted">Allocated Area</div>
+        <div class="value" id="allocatedArea">0 Kanal · 0 Marla · 0 sq ft</div>
+      </div>
+      <div class="summary-box">
+        <div class="muted">Remaining Percentage</div>
+        <div class="value" id="remainingPercent">100%</div>
+      </div>
+      <div class="summary-box">
+        <div class="muted">Remaining Area</div>
+        <div class="value" id="remainingArea">0 Kanal · 0 Marla · 0 sq ft</div>
+      </div>
+    </div>
+
+    <div class="note" id="distributionStatus">Enter total land and party shares.</div>
+  </div>
+
+  <div class="card quick-tools">
+    <h2>Quick Calculators</h2>
+    <p class="muted">Use these independently without changing the party table.</p>
+
+    <div class="grid-3">
+      <div class="tool-card">
+        <h3>Area Converter</h3>
+        <div class="grid-3">
+          <label>Kanal<input id="convK" type="number" min="0" step="0.0001" value="0"></label>
+          <label>Marla<input id="convM" type="number" min="0" step="0.0001" value="0"></label>
+          <label>Sq ft<input id="convS" type="number" min="0" step="0.01" value="0"></label>
+        </div>
+        <div class="tool-result" id="convResult">0 sq ft · 0 Marla</div>
+      </div>
+
+      <div class="tool-card">
+        <h3>Percentage → Area</h3>
+        <label>Percentage of Main Total Land
+          <input id="pctToArea" type="number" min="0" step="0.000001" value="0">
+        </label>
+        <div class="tool-result" id="pctAreaResult">0 Kanal · 0 Marla · 0 sq ft</div>
+      </div>
+
+      <div class="tool-card">
+        <h3>Area → Percentage</h3>
+        <div class="grid-3">
+          <label>Kanal<input id="areaPctK" type="number" min="0" step="0.0001" value="0"></label>
+          <label>Marla<input id="areaPctM" type="number" min="0" step="0.0001" value="0"></label>
+          <label>Sq ft<input id="areaPctS" type="number" min="0" step="0.01" value="0"></label>
+        </div>
+        <div class="tool-result" id="areaPctResult">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <h2>Share Final Results</h2>
+    <p class="muted">Generate a clean PNG image containing the final land distribution for sharing.</p>
+    <div class="footer-actions">
+      <button id="saveImageBtn" type="button" class="success">Save Final Results as Image</button>
+    </div>
+  </div>
+
+
+  <div class="card">
+    <h2>Calculation Formula</h2>
+    <div class="grid-2 muted">
+      <div><b>Party %</b> = Party Area ÷ Total Area × 100</div>
+      <div><b>Party Area</b> = Total Area × Party % ÷ 100</div>
+      <div><b>Remaining Area</b> = Total Area − Allocated Area</div>
+      <div><b>Remaining %</b> = 100 − Allocated %</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let partyCounter = 0;
+
+  function positiveNumber(v) {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  function marlaPerKanal() {
+    return Math.max(1, positiveNumber($('marlaPerKanal').value) || 20);
+  }
+
+  function sqftPerMarla() {
+    return Math.max(1, positiveNumber($('sqftPerMarla').value) || 272);
+  }
+
+  function sqftPerKanal() {
+    return marlaPerKanal() * sqftPerMarla();
+  }
+
+  function areaToSqft(k, m, s) {
+    return positiveNumber(k) * sqftPerKanal()
+      + positiveNumber(m) * sqftPerMarla()
+      + positiveNumber(s);
+  }
+
+  function splitArea(sqft) {
+    const safe = Math.max(0, Number(sqft) || 0);
+    const spk = sqftPerKanal();
+    const spm = sqftPerMarla();
+    const mpk = marlaPerKanal();
+
+    let kanal = Math.floor(safe / spk);
+    let rest = safe - kanal * spk;
+    let marla = Math.floor(rest / spm);
+    let feet = rest - marla * spm;
+
+    if (feet > spm - 0.0000001) {
+      marla += 1;
+      feet = 0;
+    }
+    if (marla >= mpk) {
+      kanal += Math.floor(marla / mpk);
+      marla = marla % mpk;
+    }
+    return { kanal, marla, feet };
+  }
+
+  function fmt(n, digits = 6) {
+    return Number(n || 0).toLocaleString(undefined, {
+      maximumFractionDigits: digits
+    });
+  }
+
+  function areaText(sqft) {
+    const a = splitArea(sqft);
+    return `${fmt(a.kanal, 0)} Kanal · ${fmt(a.marla, 0)} Marla · ${fmt(a.feet, 2)} sq ft`;
+  }
+
+  function getTotalSqft() {
+    return areaToSqft(
+      $('totalKanal').value,
+      $('totalMarla').value,
+      $('totalSqft').value
+    );
+  }
+
+  function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, m => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+    }[m]));
+  }
+
+  function updateUnits() {
+    $('unitSummary').textContent =
+      `1 Kanal = ${fmt(marlaPerKanal(), 4)} Marla = ${fmt(sqftPerKanal(), 2)} sq ft`;
+    calculateAll();
+  }
+
+  function updateTotalSummary() {
+    const total = getTotalSqft();
+    $('totalAreaText').textContent = areaText(total);
+    $('totalMarlaAll').textContent = fmt(total / sqftPerMarla(), 6);
+    $('totalSqftAll').textContent = fmt(total, 2);
+  }
+
+  function createParty(data = {}) {
+    partyCounter++;
+    const row = document.createElement('tr');
+    row.className = 'party-row';
+
+    row.innerHTML = `
+      <td><input class="p-name" type="text" value="${escapeHtml(data.name || '')}" placeholder="Party ${partyCounter}"></td>
+      <td>
+        <select class="p-mode">
+          <option value="area" ${data.mode === 'percent' ? '' : 'selected'}>Area → %</option>
+          <option value="percent" ${data.mode === 'percent' ? 'selected' : ''}>% → Area</option>
+        </select>
+      </td>
+      <td><input class="p-k" type="number" min="0" step="0.0001" value="${data.k ?? 0}"></td>
+      <td><input class="p-m" type="number" min="0" step="0.0001" value="${data.m ?? 0}"></td>
+      <td><input class="p-s" type="number" min="0" step="0.01" value="${data.s ?? 0}"></td>
+      <td><input class="p-pct" type="number" min="0" step="0.000001" value="${data.percent ?? 0}"></td>
+      <td>
+        <div class="party-percent">0%</div>
+        <div class="area-result">0 Kanal · 0 Marla · 0 sq ft</div>
+      </td>
+      <td class="no-print"><button class="danger p-remove" type="button">Remove</button></td>
+    `;
+
+    $('partyBody').appendChild(row);
+
+    row.querySelector('.p-remove').addEventListener('click', () => {
+      row.remove();
+      calculateAll();
+    });
+
+    const areaInputs = [
+      row.querySelector('.p-k'),
+      row.querySelector('.p-m'),
+      row.querySelector('.p-s')
+    ];
+    const pctInput = row.querySelector('.p-pct');
+    const modeSelect = row.querySelector('.p-mode');
+
+    areaInputs.forEach(el => {
+      el.addEventListener('input', () => {
+        modeSelect.value = 'area';
+        calculateAll();
+      });
+    });
+
+    pctInput.addEventListener('input', () => {
+      modeSelect.value = 'percent';
+      calculateAll();
+    });
+
+    row.querySelector('.p-name').addEventListener('input', calculateAll);
+
+    modeSelect.addEventListener('change', () => {
+      applyModeState(row);
+      calculateAll();
+    });
+
+    applyModeState(row);
+    calculateAll();
+  }
+
+  function applyModeState(row) {
+    // Flexible mode: no field is locked.
+    // The selected source only decides which side calculates the other.
+    [
+      row.querySelector('.p-k'),
+      row.querySelector('.p-m'),
+      row.querySelector('.p-s'),
+      row.querySelector('.p-pct')
+    ].forEach(i => i.readOnly = false);
+  }
+
+  function partyData(row, total) {
+    const mode = row.querySelector('.p-mode').value;
+    let area = 0;
+    let percent = 0;
+
+    if (mode === 'percent') {
+      percent = positiveNumber(row.querySelector('.p-pct').value);
+      area = total > 0 ? total * percent / 100 : 0;
+
+      const parts = splitArea(area);
+      row.querySelector('.p-k').value = parts.kanal;
+      row.querySelector('.p-m').value = parts.marla;
+      row.querySelector('.p-s').value = Number(parts.feet.toFixed(6));
+    } else {
+      area = areaToSqft(
+        row.querySelector('.p-k').value,
+        row.querySelector('.p-m').value,
+        row.querySelector('.p-s').value
+      );
+      percent = total > 0 ? (area / total) * 100 : 0;
+      row.querySelector('.p-pct').value = Number(percent.toFixed(8));
+    }
+
+    row.querySelector('.party-percent').textContent = `${fmt(percent, 6)}%`;
+    row.querySelector('.area-result').textContent = `${areaText(area)} · ${fmt(area,2)} sq ft`;
+
+    return { area, percent };
+  }
+
+  function calculateDistribution() {
+    const total = getTotalSqft();
+    let allocatedArea = 0;
+    let allocatedPercent = 0;
+
+    document.querySelectorAll('.party-row').forEach(row => {
+      const d = partyData(row, total);
+      allocatedArea += d.area;
+      allocatedPercent += d.percent;
+      row.classList.toggle('row-over', total > 0 && d.area > total + 0.000001);
+    });
+
+    const remainingArea = total - allocatedArea;
+    const remainingPercent = total > 0 ? 100 - allocatedPercent : 100;
+
+    $('allocatedPercent').textContent = `${fmt(allocatedPercent, 6)}%`;
+    $('allocatedArea').textContent = areaText(allocatedArea);
+    $('remainingPercent').textContent = `${fmt(Math.max(0, remainingPercent), 6)}%`;
+    $('remainingArea').textContent = areaText(Math.max(0, remainingArea));
+
+    const status = $('distributionStatus');
+    status.className = 'note';
+
+    if (total <= 0) {
+      status.textContent = 'Enter total land first. Party calculations will update automatically.';
+    } else if (allocatedArea > total + 0.000001) {
+      status.classList.add('status-bad');
+      status.innerHTML = `<b>Over allocated:</b> entered shares exceed the total by ${areaText(allocatedArea - total)} (${fmt(allocatedPercent - 100, 6)}%).`;
+    } else if (Math.abs(allocatedArea - total) < 0.000001) {
+      status.classList.add('status-ok');
+      status.innerHTML = '<b>Complete:</b> 100% of the total land is allocated.';
+    } else {
+      status.classList.add('status-warn');
+      status.innerHTML = `<b>Unallocated:</b> ${fmt(Math.max(0, remainingPercent), 6)}% remains, equal to ${areaText(Math.max(0, remainingArea))}.`;
+    }
+  }
+
+  function updateQuickTools() {
+    const conv = areaToSqft($('convK').value, $('convM').value, $('convS').value);
+    $('convResult').textContent =
+      `${fmt(conv,2)} sq ft · ${fmt(conv / sqftPerMarla(),6)} Marla · ${fmt(conv / sqftPerKanal(),6)} Kanal`;
+
+    const total = getTotalSqft();
+    const pct = positiveNumber($('pctToArea').value);
+    const pctArea = total > 0 ? total * pct / 100 : 0;
+    $('pctAreaResult').textContent =
+      total > 0
+        ? `${areaText(pctArea)} · ${fmt(pctArea,2)} sq ft`
+        : 'Enter main total land first.';
+
+    const area = areaToSqft($('areaPctK').value, $('areaPctM').value, $('areaPctS').value);
+    const areaPct = total > 0 ? area / total * 100 : 0;
+    $('areaPctResult').textContent =
+      total > 0 ? `${fmt(areaPct,6)}%` : 'Enter main total land first.';
+  }
+
+  function calculateAll() {
+    updateTotalSummary();
+    calculateDistribution();
+    updateQuickTools();
+  }
+
+  function splitRemainingEqually() {
+    const total = getTotalSqft();
+    const rows = [...document.querySelectorAll('.party-row')];
+
+    if (total <= 0 || rows.length === 0) {
+      alert('Enter total land and add at least one party.');
+      return;
+    }
+
+    let fixedArea = 0;
+    const percentRows = [];
+
+    rows.forEach(row => {
+      if (row.querySelector('.p-mode').value === 'area') {
+        fixedArea += areaToSqft(
+          row.querySelector('.p-k').value,
+          row.querySelector('.p-m').value,
+          row.querySelector('.p-s').value
+        );
+      } else {
+        percentRows.push(row);
+      }
+    });
+
+    if (percentRows.length === 0) {
+      alert('Set one or more parties to "% → Area" in Calculation Source. Remaining land will be split between those rows.');
+      return;
+    }
+
+    const remaining = Math.max(0, total - fixedArea);
+    const eachPercent = (remaining / total * 100) / percentRows.length;
+
+    percentRows.forEach(row => {
+      row.querySelector('.p-pct').value = Number(eachPercent.toFixed(8));
+    });
+
+    calculateAll();
+  }
+
+  function saveState() {
+    const data = {
+      units: {
+        mpk: marlaPerKanal(),
+        spm: sqftPerMarla()
+      },
+      total: {
+        k: $('totalKanal').value,
+        m: $('totalMarla').value,
+        s: $('totalSqft').value,
+        name: $('recordName').value,
+        partyTitle: $('partySectionTitle').value
+      },
+      parties: [...document.querySelectorAll('.party-row')].map(row => ({
+        name: row.querySelector('.p-name').value,
+        mode: row.querySelector('.p-mode').value,
+        k: row.querySelector('.p-k').value,
+        m: row.querySelector('.p-m').value,
+        s: row.querySelector('.p-s').value,
+        percent: row.querySelector('.p-pct').value
+      }))
+    };
+    localStorage.setItem('pakistanLandCalculatorState', JSON.stringify(data));
+    alert('Calculator saved in this browser.');
+  }
+
+  function loadState() {
+    const raw = localStorage.getItem('pakistanLandCalculatorState');
+    if (!raw) {
+      alert('No saved calculator was found in this browser.');
+      return;
+    }
+    try {
+      const data = JSON.parse(raw);
+      $('marlaPerKanal').value = data.units?.mpk ?? 20;
+      $('sqftPerMarla').value = data.units?.spm ?? 272;
+      $('totalKanal').value = data.total?.k ?? 0;
+      $('totalMarla').value = data.total?.m ?? 0;
+      $('totalSqft').value = data.total?.s ?? 0;
+      $('recordName').value = data.total?.name ?? '';
+      $('partySectionTitle').value = data.total?.partyTitle ?? '';
+
+      $('partyBody').innerHTML = '';
+      partyCounter = 0;
+      (data.parties || []).forEach(createParty);
+      if (!data.parties || data.parties.length === 0) {
+        createParty();
+      }
+      updateUnits();
+    } catch (e) {
+      alert('Saved data could not be loaded.');
+    }
+  }
+
+  function clearAll() {
+    if (!confirm('Clear the total land and all party entries?')) return;
+
+    $('totalKanal').value = 0;
+    $('totalMarla').value = 0;
+    $('totalSqft').value = 0;
+    $('recordName').value = '';
+    $('partySectionTitle').value = '';
+    $('partyBody').innerHTML = '';
+    partyCounter = 0;
+    createParty();
+    createParty();
+
+    ['convK','convM','convS','pctToArea','areaPctK','areaPctM','areaPctS'].forEach(id => {
+      $(id).value = 0;
+    });
+
+    calculateAll();
+  }
+
+  $('addParty').addEventListener('click', () => createParty());
+  $('splitRemaining').addEventListener('click', splitRemainingEqually);
+
+  ['totalKanal','totalMarla','totalSqft','recordName','partySectionTitle',
+   'marlaPerKanal','sqftPerMarla',
+   'convK','convM','convS','pctToArea','areaPctK','areaPctM','areaPctS'
+  ].forEach(id => {
+    $(id).addEventListener('input', () => {
+      if (id === 'marlaPerKanal' || id === 'sqftPerMarla') updateUnits();
+      else calculateAll();
+    });
+  });
+
+  $('resetUnits').addEventListener('click', () => {
+    $('marlaPerKanal').value = 20;
+    $('sqftPerMarla').value = 272;
+    updateUnits();
+  });
+
+  $('saveBtn').addEventListener('click', saveState);
+  $('loadBtn').addEventListener('click', loadState);
+  $('clearBtn').addEventListener('click', clearAll);
+  function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = String(text).split(' ');
+    let line = '';
+    let currentY = y;
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && i > 0) {
+        ctx.fillText(line.trim(), x, currentY);
+        line = words[i] + ' ';
+        currentY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    if (line.trim()) ctx.fillText(line.trim(), x, currentY);
+    return currentY;
+  }
+
+  function downloadResultsImage() {
+    calculateAll();
+
+    const total = getTotalSqft();
+    if (total <= 0) {
+      alert('Enter total land before saving the results image.');
+      return;
+    }
+
+    const rows = [...document.querySelectorAll('.party-row')];
+    const partyResults = [];
+    let allocatedArea = 0;
+    let allocatedPercent = 0;
+
+    rows.forEach((row, index) => {
+      const name = row.querySelector('.p-name').value.trim() || `Party ${index + 1}`;
+      const d = partyData(row, total);
+      allocatedArea += d.area;
+      allocatedPercent += d.percent;
+      partyResults.push({
+        name,
+        area: d.area,
+        percent: d.percent
+      });
+    });
+
+    const remainingArea = total - allocatedArea;
+    const remainingPercent = total > 0 ? 100 - allocatedPercent : 100;
+    const recordName = $('recordName').value.trim();
+    const partySectionTitle = $('partySectionTitle').value.trim();
+
+    const width = 1400;
+    const margin = 70;
+    const rowHeight = 74;
+    const headerHeight = 300;
+    const summaryHeight = 220;
+    const partyHeaderHeight = 70;
+    const footerHeight = 150;
+    const partyCount = Math.max(1, partyResults.length);
+    const height = headerHeight + summaryHeight + partyHeaderHeight + partyCount * rowHeight + footerHeight;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Header
+    ctx.fillStyle = '#1d4ed8';
+    ctx.fillRect(0, 0, width, 170);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 42px Arial';
+    ctx.fillText('Pakistan Land Record Calculator', margin, 72);
+
+    ctx.font = '24px Arial';
+    ctx.fillText('Final Land Distribution', margin, 115);
+
+    if (recordName) {
+      ctx.font = '22px Arial';
+      ctx.fillText(`Record: ${recordName}`, margin, 148);
+    }
+
+    // Total land
+    let y = 215;
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 30px Arial';
+    ctx.fillText('Total Land', margin, y);
+
+    y += 48;
+    ctx.font = '26px Arial';
+    ctx.fillStyle = '#334155';
+    ctx.fillText(areaText(total), margin, y);
+
+    y += 38;
+    ctx.font = '22px Arial';
+    ctx.fillText(`${fmt(total, 2)} sq ft  |  ${fmt(total / sqftPerMarla(), 6)} Marla  |  100%`, margin, y);
+
+    // Summary boxes
+    y += 55;
+    const boxGap = 20;
+    const boxWidth = (width - margin * 2 - boxGap * 2) / 3;
+    const boxHeight = 150;
+    const boxData = [
+      {
+        title: 'Allocated',
+        big: `${fmt(allocatedPercent, 6)}%`,
+        small: areaText(allocatedArea)
+      },
+      {
+        title: 'Remaining',
+        big: `${fmt(Math.max(0, remainingPercent), 6)}%`,
+        small: areaText(Math.max(0, remainingArea))
+      },
+      {
+        title: 'Status',
+        big: allocatedArea > total + 0.000001 ? 'Over Allocated'
+          : Math.abs(allocatedArea - total) < 0.000001 ? 'Complete'
+          : 'Incomplete',
+        small: allocatedArea > total + 0.000001
+          ? `Exceeds by ${areaText(allocatedArea - total)}`
+          : Math.abs(allocatedArea - total) < 0.000001
+          ? '100% of land allocated'
+          : `${fmt(Math.max(0, remainingPercent), 6)}% still unallocated`
+      }
+    ];
+
+    boxData.forEach((b, i) => {
+      const x = margin + i * (boxWidth + boxGap);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(x, y, boxWidth, boxHeight);
+      ctx.strokeStyle = '#dbe3ec';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, boxWidth, boxHeight);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '20px Arial';
+      ctx.fillText(b.title, x + 22, y + 36);
+
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 30px Arial';
+      ctx.fillText(b.big, x + 22, y + 78);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '17px Arial';
+      wrapCanvasText(ctx, b.small, x + 22, y + 112, boxWidth - 44, 23);
+    });
+
+    // Party section
+    y += boxHeight + 60;
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 30px Arial';
+    ctx.fillText(partySectionTitle || 'Party-wise Distribution', margin, y);
+
+    y += 32;
+
+    // Table header
+    ctx.fillStyle = '#eff6ff';
+    ctx.fillRect(margin, y, width - margin * 2, 58);
+
+    ctx.fillStyle = '#1e3a8a';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText('Party', margin + 20, y + 37);
+    ctx.fillText('Area', margin + 390, y + 37);
+    ctx.fillText('Percentage', margin + 1080, y + 37);
+
+    y += 58;
+
+    if (partyResults.length === 0) {
+      ctx.fillStyle = '#64748b';
+      ctx.font = '20px Arial';
+      ctx.fillText('No parties entered.', margin + 20, y + 45);
+      y += rowHeight;
+    } else {
+      partyResults.forEach((p, index) => {
+        if (index % 2 === 0) {
+          ctx.fillStyle = '#fafafa';
+          ctx.fillRect(margin, y, width - margin * 2, rowHeight);
+        }
+
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.beginPath();
+        ctx.moveTo(margin, y + rowHeight);
+        ctx.lineTo(width - margin, y + rowHeight);
+        ctx.stroke();
+
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 20px Arial';
+        wrapCanvasText(ctx, p.name, margin + 20, y + 31, 330, 23);
+
+        ctx.fillStyle = '#334155';
+        ctx.font = '19px Arial';
+        wrapCanvasText(ctx, areaText(p.area), margin + 390, y + 29, 610, 23);
+
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 21px Arial';
+        ctx.fillText(`${fmt(p.percent, 6)}%`, margin + 1080, y + 31);
+
+        y += rowHeight;
+      });
+    }
+
+    // Footer
+    y += 55;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '18px Arial';
+    ctx.fillText(`Conversion used: 1 Kanal = ${fmt(marlaPerKanal(), 4)} Marla | 1 Marla = ${fmt(sqftPerMarla(), 2)} sq ft`, margin, y);
+
+    y += 34;
+    ctx.fillText('Generated from Pakistan Land Record Multi-Function Calculator', margin, y);
+
+    const link = document.createElement('a');
+    const safeName = (recordName || 'land-results')
+      .replace(/[^a-z0-9_-]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'land-results';
+
+    link.download = `${safeName}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  $('saveImageBtn').addEventListener('click', downloadResultsImage);
+  $('printBtn').addEventListener('click', () => window.print());
+
+  createParty();
+  createParty();
+  updateUnits();
+})();
+</script>
+</body>
+</html>
