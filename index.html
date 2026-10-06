@@ -216,6 +216,43 @@
     justify-content:flex-end;
   }
 
+  .image-fallback-modal {
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(15,23,42,.72);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  }
+
+  .image-fallback-card {
+    width:min(760px,100%);
+    max-height:92vh;
+    overflow:auto;
+    background:#fff;
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.28);
+  }
+
+  .image-fallback-card img {
+    width:100%;
+    height:auto;
+    display:block;
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin:12px 0;
+  }
+
+  .image-fallback-actions {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
   @media (max-width:900px) {
     .grid-4, .summary-grid { grid-template-columns:repeat(2,1fr); }
   }
@@ -410,9 +447,9 @@
 
   <div class="card no-print">
     <h2>Share Final Results</h2>
-    <p class="muted">Generate a clean PNG image containing the final land distribution for sharing.</p>
+    <p class="muted">On iPhone and Android this opens the phone share/save menu. On desktop it downloads the PNG directly. If mobile sharing is unavailable, an image preview is shown so you can save it manually.</p>
     <div class="footer-actions">
-      <button id="saveImageBtn" type="button" class="success">Save Final Results as Image</button>
+      <button id="saveImageBtn" type="button" class="success">Share / Save Final Results Image</button>
     </div>
   </div>
 
@@ -835,6 +872,94 @@
     return currentY;
   }
 
+  function isMobileDevice() {
+    const ua = navigator.userAgent || '';
+    const iPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    return /Android|iPhone|iPad|iPod/i.test(ua) || iPadOS;
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const parts = dataUrl.split(',');
+    const mimeMatch = parts[0].match(/data:([^;]+)/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  function triggerImageDownload(dataUrl, fileName) {
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = dataUrl;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function showImageFallback(dataUrl, fileName) {
+    const existing = document.querySelector('.image-fallback-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'image-fallback-modal';
+    modal.innerHTML = `
+      <div class="image-fallback-card" role="dialog" aria-modal="true" aria-label="Save results image">
+        <h2 style="margin-bottom:6px">Results Image Ready</h2>
+        <p class="muted" style="margin-bottom:8px">If the image did not save automatically, press and hold the image on iPhone/Android and choose <b>Save to Photos</b>, <b>Download image</b>, or share it to WhatsApp/Files.</p>
+        <img src="${dataUrl}" alt="Final land distribution result">
+        <div class="image-fallback-actions">
+          <button type="button" class="secondary fallback-download">Download PNG</button>
+          <button type="button" class="primary fallback-close">Close</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.querySelector('.fallback-download').addEventListener('click', () => {
+      triggerImageDownload(dataUrl, fileName);
+    });
+    modal.querySelector('.fallback-close').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', e => {
+      if (e.target === modal) modal.remove();
+    });
+  }
+
+  function exportResultsImage(canvas, safeName) {
+    const fileName = `${safeName}.png`;
+    const dataUrl = canvas.toDataURL('image/png');
+
+    // Phones/tablets: prefer the native share sheet. This works well on
+    // modern iPhone/iPad Safari/PWA and Android Chrome when served over HTTPS.
+    if (isMobileDevice()) {
+      try {
+        const blob = dataUrlToBlob(dataUrl);
+        const file = new File([blob], fileName, { type: 'image/png', lastModified: Date.now() });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          // Share only the image file. Avoid extra text because some iOS
+          // WebKit versions handle file + text sharing inconsistently.
+          navigator.share({ files: [file] }).catch(err => {
+            if (!err || err.name !== 'AbortError') {
+              showImageFallback(dataUrl, fileName);
+            }
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn('Native image sharing is unavailable:', err);
+      }
+
+      // Mobile fallback: show the actual PNG so it can be long-pressed/saved.
+      showImageFallback(dataUrl, fileName);
+      return;
+    }
+
+    // Desktop fallback: normal PNG download.
+    triggerImageDownload(dataUrl, fileName);
+  }
+
   function downloadResultsImage() {
     calculateAll();
 
@@ -1028,17 +1153,12 @@
     y += 34;
     ctx.fillText('Generated from Pakistan Land Record Multi-Function Calculator', margin, y);
 
-    const link = document.createElement('a');
     const safeName = (recordName || 'land-results')
       .replace(/[^a-z0-9_-]+/gi, '-')
       .replace(/^-+|-+$/g, '')
       .toLowerCase() || 'land-results';
 
-    link.download = `${safeName}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    exportResultsImage(canvas, safeName);
   }
 
   $('saveImageBtn').addEventListener('click', downloadResultsImage);
